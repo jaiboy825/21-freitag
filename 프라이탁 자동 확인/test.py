@@ -1,12 +1,17 @@
 from selenium import webdriver
 from datetime import datetime
+from PIL import Image
+import numpy as np
 import schedule
 import time
- 
+import cv2
+import matplotlib.pyplot as plt
+
+
  #프라이탁 신상 확인 코드 v2.0 
  #새로운 가방이 등록되었을 때, 티스토리 댓글 아이디 및 비밀번호가 중복으로 입력되는 것을 수정한 버전 입니다.
 print('10분마다 프라이탁 홈페이지를 갱신하며, 신제품 여부를 확인합니다.\n')
-driver = webdriver.Chrome('/Users/jeonje/chromedriver')
+driver = webdriver.Chrome('/usr/local/bin/chromedriver')
  
 preLinks = []
 newLinks = []
@@ -42,6 +47,12 @@ def getFreitag():
     driver.get(url)
  
     for item in driver.find_elements_by_css_selector('ul.products-list > li > a > img'):
+        img_color = cv2.imread(item, cv2.IMREAD_COLOR)
+        img_color.crop((30, 30, 85, 10))
+        img_color = cv2.cvtColor(item, cv2.COLOR_BGR2RGB)
+
+
+
         newLinks.append([item.get_attribute('src')])
  
     newItems = [x for x in newLinks if x not in preLinks] #기존 정보에 없는 가방이 나왔을 시에 newItems에 등록
@@ -51,7 +62,8 @@ def getFreitag():
         writeComment()
     else:
         print("새로운 가방이 없습니다.")
- 
+
+
 # 첨에 일단 실행
 getFreitag() #프라이탁 사이트 접속 후 정보 가져오기
 writeUserInfo() #새롭게 시작할때 티스토리 댓글 유저 아이디 비밀번호 입력
@@ -60,7 +72,11 @@ writeUserInfo() #새롭게 시작할때 티스토리 댓글 유저 아이디 비
  
 # 10분에 한번씩 실행
 schedule.every(10).minutes.do(getFreitag)
- 
+count = 1
 while True:
-    schedule.run_pending()
-    time.sleep(1)
+    if count > 30 :
+        break
+    else : 
+        count+=1
+        schedule.run_pending()
+        time.sleep(1)
